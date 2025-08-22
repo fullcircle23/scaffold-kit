@@ -27,7 +27,10 @@ wrappers\setup.bat my-api --profile fastapi --org your-org --template-owner your
 ```
 
 ## Publishing subfolders to template repos
+
 See **[docs/PUBLISHING.md](docs/PUBLISHING.md)** for configuration, mapping, and troubleshooting.
+
+See **[docs/DEPLOY_KEYS.md](docs/DEPLOY_KEYS.md)** for deploy key setup.
 
 ## Versioning policy
 

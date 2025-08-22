@@ -1,3 +1,5 @@
+> See also: [Deploy keys setup](DEPLOY_KEYS.md) · [Back to README](../README.md)
+
 # Publishing templates (subtrees)
 
 This repo can publish each `templates/<name>/` folder to its own **template repository** using
