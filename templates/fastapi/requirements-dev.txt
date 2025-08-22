@@ -1,7 +1,7 @@
 pytest
 httpx
 pre-commit
-black
-ruff
+black==24.8.0
+ruff==0.6.2
 psycopg[binary]
 redis
