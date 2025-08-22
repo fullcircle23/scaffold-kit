@@ -106,6 +106,6 @@ jobs:
           fetch-depth: 0
       - uses: gitleaks/gitleaks-action@v2
         with:
-          args: --no-git -v
+          args: --no-git -v --config .gitleaks.toml
     # Set to true if you prefer warnings instead of failing CI on detections
     continue-on-error: false

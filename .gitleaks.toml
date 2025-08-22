@@ -1,0 +1,15 @@
+title = "scaffold-kit allowlist"
+
+[allowlist]
+description = "Allow common template placeholders"
+paths = [
+  'templates/.*/\.env\.example',
+  'templates/.*/docker-compose\.yml',
+  'templates/.*/deploy/nginx\.conf',
+]
+regexes = [
+  'POSTGRES_PASSWORD:\s*app',
+  'DATABASE_URL=postgresql://app:app@db:5432/app',
+  'REDIS_URL=redis://redis:6379/0',
+  'APP_NAME=\w+-svc',
+]
