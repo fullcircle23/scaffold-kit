@@ -4,83 +4,49 @@ on:
     branches: [main]
     paths:
       - 'templates/**'
+  workflow_dispatch: {}
 permissions:
   contents: write
+env:
+  ORG: ${{ vars.PUBLISH_ORG || github.repository_owner }}
+  BRANCH: ${{ vars.PUBLISH_BRANCH || 'main' }}
+  HOST: ${{ vars.PUBLISH_HOST || 'github.com' }}
 jobs:
   publish:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { src: fastapi,     dst: template-fastapi     , key: DEPLOY_KEY_TEMPLATE_FASTAPI }
+          - { src: flask,       dst: template-flask       , key: DEPLOY_KEY_TEMPLATE_FLASK }
+          - { src: flask-nginx, dst: template-flask-nginx , key: DEPLOY_KEY_TEMPLATE_FLASK_NGINX }
+          - { src: web,         dst: template-web         , key: DEPLOY_KEY_TEMPLATE_WEB }
+          - { src: ds,          dst: template-ds          , key: DEPLOY_KEY_TEMPLATE_DS }
+          - { src: lib,         dst: template-lib         , key: DEPLOY_KEY_TEMPLATE_LIB }
+          - { src: base,        dst: template-base        , key: DEPLOY_KEY_TEMPLATE_BASE }
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Start ssh-agent and load deploy keys
+      - name: Start ssh-agent and load key for ${{ matrix.dst }}
         uses: webfactory/ssh-agent@v0.9.0
         with:
-          ssh-private-key: |
-            ${{ secrets.DEPLOY_KEY_TEMPLATE_FASTAPI }}
-            ${{ secrets.DEPLOY_KEY_TEMPLATE_FLASK }}
-            ${{ secrets.DEPLOY_KEY_TEMPLATE_FLASK_NGINX }}
-            ${{ secrets.DEPLOY_KEY_TEMPLATE_WEB }}
-            ${{ secrets.DEPLOY_KEY_TEMPLATE_DS }}
-            ${{ secrets.DEPLOY_KEY_TEMPLATE_LIB }}
-            ${{ secrets.DEPLOY_KEY_TEMPLATE_BASE }}
-
-      - name: Trust github.com host key
+          ssh-private-key: ${{ secrets[matrix.key] }}
+      - name: Trust github host
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -H github.com >> ~/.ssh/known_hosts
-
+          ssh-keyscan -H "${HOST}" >> ~/.ssh/known_hosts
       - name: Configure git identity
         run: |
           git config --global user.name "scaffold-kit bot"
           git config --global user.email "bot@users.noreply.github.com"
-
-      - name: Publish base
-        env: { TARGET: 'git@github.com:your-org/template-base.git' }
+      - name: Publish ${{ matrix.src }} (templates/${{ matrix.src }} → ${{ env.ORG }}/${{ matrix.dst }})
+        shell: bash
         run: |
-          git subtree split --prefix=templates/base -b pub-base
-          git push -f "$TARGET" pub-base:main
-          git branch -D pub-base
-
-      - name: Publish web
-        env: { TARGET: 'git@github.com:your-org/template-web.git' }
-        run: |
-          git subtree split --prefix=templates/web -b pub-web
-          git push -f "$TARGET" pub-web:main
-          git branch -D pub-web
-
-      - name: Publish ds
-        env: { TARGET: 'git@github.com:your-org/template-ds.git' }
-        run: |
-          git subtree split --prefix=templates/ds -b pub-ds
-          git push -f "$TARGET" pub-ds:main
-          git branch -D pub-ds
-
-      - name: Publish lib
-        env: { TARGET: 'git@github.com:your-org/template-lib.git' }
-        run: |
-          git subtree split --prefix=templates/lib -b pub-lib
-          git push -f "$TARGET" pub-lib:main
-          git branch -D pub-lib
-
-      - name: Publish fastapi
-        env: { TARGET: 'git@github.com:your-org/template-fastapi.git' }
-        run: |
-          git subtree split --prefix=templates/fastapi -b pub-fastapi
-          git push -f "$TARGET" pub-fastapi:main
-          git branch -D pub-fastapi
-
-      - name: Publish flask
-        env: { TARGET: 'git@github.com:your-org/template-flask.git' }
-        run: |
-          git subtree split --prefix=templates/flask -b pub-flask
-          git push -f "$TARGET" pub-flask:main
-          git branch -D pub-flask
-
-      - name: Publish flask-nginx
-        env: { TARGET: 'git@github.com:your-org/template-flask-nginx.git' }
-        run: |
-          git subtree split --prefix=templates/flask-nginx -b pub-flask-nginx
-          git push -f "$TARGET" pub-flask-nginx:main
-          git branch -D pub-flask-nginx
+          set -euo pipefail
+          tmp="pub-${{ matrix.src }}"
+          git subtree split --prefix="templates/${{ matrix.src }}" -b "$tmp"
+          target="git@${{ env.HOST }}:${{ env.ORG }}/${{ matrix.dst }}.git"
+          git push -f "$target" "$tmp:${{ env.BRANCH }}"
+          git branch -D "$tmp"
