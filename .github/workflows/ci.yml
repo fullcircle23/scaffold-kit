@@ -1,0 +1,111 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: ["**"]
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  templates-ci:
+    name: Templates CI
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        template: [fastapi, flask, flask-nginx, web, ds, lib, base]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node (for web/lib)
+        if: matrix.template == 'web' || matrix.template == 'lib'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup Python (for py templates)
+        if: matrix.template == 'fastapi' || matrix.template == 'flask' || matrix.template == 'flask-nginx' || matrix.template == 'ds'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Docker info
+        run: |
+          docker --version
+          docker compose version
+
+      - name: Run checks
+        run: ./.github/scripts/run-template-checks.sh ${{ matrix.template }}
+
+  wrappers-ci:
+    name: Wrappers CI (shellcheck & parse)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install shellcheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+      - name: Lint setup.sh
+        run: shellcheck wrappers/setup.sh && bash -n wrappers/setup.sh
+      - name: Smoke parse (no network)
+        run: |
+          ./wrappers/setup.sh --help || true
+          ./wrappers/setup.sh tmp --profile base --no-push --org dummy --template-owner dummy || true
+
+  wrappers-windows-ci:
+    name: Wrappers CI (Windows .bat smoke)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Smoke parse (no network)
+        run: |
+          cmd /c "wrappers\setup.bat" || echo ok
+          cmd /c "wrappers\setup.bat tmp --profile base --no-push --org dummy --template-owner dummy" || echo ok
+
+  subtree-ci:
+    name: Subtree split guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify subtree splits
+        run: |
+          set -e
+          for t in base web ds lib fastapi flask flask-nginx; do
+            git subtree split --prefix="templates/$t" -b "pub-$t"
+            git branch -D "pub-$t"
+          done
+
+  hygiene-ci:
+    name: Hygiene checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify docs exist
+        run: |
+          for t in base web ds lib fastapi flask flask-nginx; do
+            test -f "templates/$t/TEMPLATE_VERSION"
+            test -f "templates/$t/CHANGELOG.md"
+            test -f "templates/$t/UPGRADE.md"
+          done
+      - name: Actionlint (validate GH workflows)
+        uses: reviewdog/action-actionlint@v1
+        with:
+          reporter: github-pr-check
+          level: warning
+
+  gitleaks:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        with:
+          args: --no-git -v
+    # Set to true if you prefer warnings instead of failing CI on detections
+    continue-on-error: false

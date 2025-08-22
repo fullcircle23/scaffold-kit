@@ -1,0 +1,18 @@
+services:
+  api:
+    build: .
+    env_file: .env
+    ports: ["8000:8000"]
+    depends_on: [db, redis]
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: app
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  redis:
+    image: redis:7-alpine
+volumes:
+  pgdata:

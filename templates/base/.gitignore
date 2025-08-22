@@ -1,0 +1,22 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs/temp
+*.log
+*.tmp
+.env
+.env.*
+
+# Build artifacts
+build/
+dist/
+out/
+coverage/
+.cache/
+
+# Archives
+*.zip
+*.tar
+*.gz
+*.7z

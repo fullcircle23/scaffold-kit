@@ -1,0 +1,26 @@
+{
+  "name": "template-lib",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p .",
+    "typecheck": "tsc -p . --noEmit",
+    "lint": "eslint . --ext .ts",
+    "format": "prettier -w .",
+    "test": "npm run build && node --test"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "eslint": "^9.9.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "prettier": "^3.3.3",
+    "eslint-config-prettier": "^9.1.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

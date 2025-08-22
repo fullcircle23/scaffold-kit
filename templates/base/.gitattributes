@@ -1,0 +1,7 @@
+* text=auto
+*.sh eol=lf
+*.yml eol=lf
+*.yaml eol=lf
+*.md eol=lf
+*.bat eol=crlf
+*.cmd eol=crlf
