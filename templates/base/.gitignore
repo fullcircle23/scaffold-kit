@@ -20,3 +20,6 @@ coverage/
 *.tar
 *.gz
 *.7z
+
+# Allow sample env files
+!.env.example

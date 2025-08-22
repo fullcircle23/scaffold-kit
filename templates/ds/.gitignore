@@ -30,3 +30,6 @@ __pycache__/
 .mypy_cache/
 .pytest_cache/
 .ruff_cache/
+
+# Allow sample env files
+!.env.example

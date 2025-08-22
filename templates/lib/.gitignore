@@ -24,3 +24,6 @@ coverage/
 node_modules/
 dist/
 *.tsbuildinfo
+
+# Allow sample env files
+!.env.example
