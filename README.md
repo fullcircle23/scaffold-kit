@@ -28,15 +28,53 @@ wrappers\setup.bat my-api --profile fastapi --org your-org --template-owner your
 
 ## Publishing subfolders to template repos
 
+### Configure publishing (no code edits)
+
+The publish workflow and script are parameterized via **Repository variables** (Settings → Secrets and variables → Variables):
+
+| Variable          | What it controls                            | Default if unset                    | Example        |
+|-------------------|----------------------------------------------|-------------------------------------|----------------|
+| `PUBLISH_ORG`     | Target owner (user/org) of template repos    | `github.repository_owner`           | `fullcircle23` |
+| `PUBLISH_BRANCH`  | Branch to push in target repos               | `main`                              | `main`         |
+| `PUBLISH_HOST`    | Git host (supports GH Enterprise)            | `github.com`                        | `github.com`   |
+
+You can also set these via CLI:
+```bash
+gh variable set PUBLISH_ORG -b "fullcircle23"
+gh variable set PUBLISH_BRANCH -b "main"
+gh variable set PUBLISH_HOST -b "github.com"
+```
+
+Make sure the deploy key **secrets** exist (Settings → Secrets and variables → Actions):
+- `DEPLOY_KEY_TEMPLATE_FASTAPI`
+- `DEPLOY_KEY_TEMPLATE_FLASK`
+- `DEPLOY_KEY_TEMPLATE_FLASK_NGINX`
+- `DEPLOY_KEY_TEMPLATE_WEB`
+- `DEPLOY_KEY_TEMPLATE_DS`
+- `DEPLOY_KEY_TEMPLATE_LIB`
+- `DEPLOY_KEY_TEMPLATE_BASE`
+
+> Mapping (keep in sync with `scripts/publish-subtrees.sh` and `.github/workflows/publish.yml`):
+>
+```
+templates/fastapi     → ${PUBLISH_ORG}/template-fastapi
+templates/flask       → ${PUBLISH_ORG}/template-flask
+templates/flask-nginx → ${PUBLISH_ORG}/template-flask-nginx
+templates/web         → ${PUBLISH_ORG}/template-web
+templates/ds          → ${PUBLISH_ORG}/template-ds
+templates/lib         → ${PUBLISH_ORG}/template-lib
+templates/base        → ${PUBLISH_ORG}/template-base
+```
+
 This repo includes a workflow (`.github/workflows/publish.yml`) and a helper script (`scripts/publish-subtrees.sh`)
 that push each `templates/<name>` folder to its own repository:
-- `your-org/template-fastapi`
-- `your-org/template-flask`
-- `your-org/template-flask-nginx`
-- `your-org/template-web`
-- `your-org/template-ds`
-- `your-org/template-lib`
-- `your-org/template-base`
+- `templates/fastapi     → ${PUBLISH_ORG}/template-fastapi`
+- `templates/flask       → ${PUBLISH_ORG}/template-flask`
+- `templates/flask-nginx → ${PUBLISH_ORG}/template-flask-nginx`
+- `templates/web         → ${PUBLISH_ORG}/template-web`
+- `templates/ds          → ${PUBLISH_ORG}/template-ds`
+- `templates/lib         → ${PUBLISH_ORG}/template-lib`
+- `templates/base        → ${PUBLISH_ORG}/template-base`
 
 Mark each target repo once as a **Template repository** in GitHub settings. The workflow uses `git subtree split`.
 
