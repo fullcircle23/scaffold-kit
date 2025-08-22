@@ -24,6 +24,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+          cache-dependency-path: templates/${{ matrix.template }}/package-lock.json
 
       - name: Setup Python (for py templates)
         if: matrix.template == 'fastapi' || matrix.template == 'flask' || matrix.template == 'flask-nginx' || matrix.template == 'ds'
