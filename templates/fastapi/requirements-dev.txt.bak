@@ -1,0 +1,7 @@
+pytest
+httpx
+pre-commit
+black
+ruff
+psycopg[binary]
+redis

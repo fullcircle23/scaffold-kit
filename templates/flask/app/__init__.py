@@ -1,6 +1,7 @@
 from flask import Flask, jsonify
 import os
 
+
 def create_app():
     app = Flask(__name__)
     app.config["APP_NAME"] = os.getenv("APP_NAME", "flask-svc")

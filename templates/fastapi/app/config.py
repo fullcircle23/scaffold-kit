@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 import os
 
+
 class Settings(BaseModel):
     app_name: str = os.getenv("APP_NAME", "fastapi-svc")
     env: str = os.getenv("ENV", "development")
@@ -10,5 +11,6 @@ class Settings(BaseModel):
     allowed_origins: str = os.getenv("ALLOWED_ORIGINS", "*")
     database_url: str = os.getenv("DATABASE_URL", "postgresql://app:app@db:5432/app")
     redis_url: str = os.getenv("REDIS_URL", "redis://redis:6379/0")
+
 
 settings = Settings()

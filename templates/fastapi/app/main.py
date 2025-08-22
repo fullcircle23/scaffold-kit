@@ -13,9 +13,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/")
 def root():
     return {"message": f"Hello from {settings.app_name}!"}
+
 
 @app.get("/health")
 def health():
