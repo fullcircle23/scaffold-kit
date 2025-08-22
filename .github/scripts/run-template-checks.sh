@@ -29,7 +29,7 @@ case "$TEMPLATE" in
     py_lint
     py_test
     docker build -t ci-fastapi .
-    docker compose config >/dev/null
+    docker compose --env-file .env.example config >/dev/null
     ;;
   flask)
     py_upgrade
@@ -37,14 +37,14 @@ case "$TEMPLATE" in
     py_lint
     py_test
     docker build -t ci-flask .
-    docker compose config >/dev/null
+    docker compose --env-file .env.example config >/dev/null
     ;;
   flask-nginx)
     py_upgrade
     pip install -r requirements.txt -r requirements-dev.txt
     py_lint
     py_test
-    docker compose config >/dev/null
+    docker compose --env-file .env.example config >/dev/null
     ;;
   ds)
     py_upgrade
