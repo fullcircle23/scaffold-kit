@@ -10,61 +10,64 @@ fi
 
 cd "templates/${TEMPLATE}"
 
-run_python() {
-  python -m pip install --upgrade pip
-  pip install -r requirements.txt -r requirements-dev.txt
-  ruff check .
-  black --check .
-  pytest -q
-}
+py_upgrade() { python -m pip install --upgrade pip; }
+py_lint()    { python -m ruff check .; python -m black --check .; }
+py_test()    { python -m pytest -q; }
 
-run_node_web() {
-  npm ci
-  npm run lint
-  npm run typecheck
-  npm run build
-}
-
-run_node_lib() {
-  npm ci
-  npm run lint
-  npm run typecheck
-  npm test
-  npm pack > /dev/null
+node_install() {
+  if [ -f package-lock.json ]; then
+    npm ci
+  else
+    npm install --no-audit --no-fund
+  fi
 }
 
 case "$TEMPLATE" in
   fastapi)
-    run_python
+    py_upgrade
+    pip install -r requirements.txt -r requirements-dev.txt
+    py_lint
+    py_test
     docker build -t ci-fastapi .
     docker compose config >/dev/null
     ;;
   flask)
-    run_python
+    py_upgrade
+    pip install -r requirements.txt -r requirements-dev.txt
+    py_lint
+    py_test
     docker build -t ci-flask .
     docker compose config >/dev/null
     ;;
   flask-nginx)
-    # Flask app uses gunicorn; compose includes nginx
-    python -m pip install --upgrade pip
+    py_upgrade
     pip install -r requirements.txt -r requirements-dev.txt
-    ruff check .
-    black --check .
-    pytest -q
+    py_lint
+    py_test
     docker compose config >/dev/null
     ;;
   ds)
-    run_python
+    py_upgrade
+    pip install -r requirements-dev.txt   # skip heavy runtime deps for smoke tests
+    py_lint
+    py_test
     ;;
   web)
-    run_node_web
+    node_install
+    npm run lint
+    npm run typecheck
+    npm run build
     docker build -t ci-web .
     ;;
   lib)
-    run_node_lib
+    node_install
+    npm run lint
+    npm run typecheck
+    npm run build
+    npm test
+    npm pack > /dev/null
     ;;
   base)
-    # meta checks
     test -f .editorconfig
     test -f .gitattributes
     test -f .gitignore
